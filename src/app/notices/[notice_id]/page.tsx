@@ -5,6 +5,14 @@ import { redirect } from "next/navigation";
 export async function generateMetadata({ params }: { params: { notice_id: string } }): Promise<Metadata> {
   // TODO: cache
   const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${params.notice_id}`);
+
+  if (!data.ok) {
+    return {
+      title: "공지사항 없음",
+      description: "존재하지 않는 공지사항입니다.",
+    };
+  }
+
   const article = await data.json();
 
   return {
