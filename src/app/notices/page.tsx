@@ -19,7 +19,7 @@ export default async function Page() {
       </div>
 
       <div className="mx-auto max-w-4xl border-y px-6">
-        {articles.length === 0 ? (
+        {!articles || articles.length === 0 ? (
           <div className="py-4 text-center text-lg">공지사항이 없습니다.</div>
         ) : (
           articles.map((article: Article) => (

@@ -20,7 +20,7 @@ export default async function Page() {
 
       <div className="mx-auto max-w-4xl rounded bg-neutral-100 px-6 shadow">
         <Accordion type="single" collapsible>
-          {questions.length === 0 ? (
+          {!questions || questions.length === 0 ? (
             <div className="py-4 text-center text-lg">내용이 없습니다.</div>
           ) : (
             questions.map((question: Question) => (
