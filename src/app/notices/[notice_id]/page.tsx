@@ -3,8 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export async function generateMetadata({ params }: { params: { notice_id: string } }): Promise<Metadata> {
-  // TODO: cache
-  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${params.notice_id}`);
+  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${params.notice_id}`, { cache: "no-store" });
 
   if (!data.ok) {
     return {
@@ -22,7 +21,7 @@ export async function generateMetadata({ params }: { params: { notice_id: string
 }
 
 export default async function Page({ params }: { params: { notice_id: string } }) {
-  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${params.notice_id}`);
+  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${params.notice_id}`, { cache: "no-store" });
   if (!data.ok) {
     redirect("/notices");
   }

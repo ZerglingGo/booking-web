@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const data = await fetch(`${process.env.API_ENDPOINT}/api/questions`).catch(() => null);
+  const data = await fetch(`${process.env.API_ENDPOINT}/api/questions`, { cache: "no-store" }).catch(() => null);
   const questions = await data?.json().catch(() => []);
 
   return (

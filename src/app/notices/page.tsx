@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles?category=notice`).catch(() => null);
+  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles?category=notice`, { cache: "no-store" }).catch(() => null);
   const articles = await data?.json().catch(() => []);
 
   return (
