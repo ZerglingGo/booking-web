@@ -1,31 +1,39 @@
 import type { Metadata } from "next";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "공지사항",
   description: "캠핑장에서 전해드리는 공지사항입니다.",
 };
 
-export default function Page() {
+export default async function Page() {
+  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles?category=notice`).catch(() => null);
+  const articles = await data?.json().catch(() => []);
+
   return (
-    <div className="container py-8 lg:py-12 px-4 mx-auto">
-      <div className="flex items-center flex-col justify-center mb-8">
-        <h1 className="inline-block underline-offset-8 underline decoration-primary decoration-from-font font-bold text-3xl mb-4">공지사항</h1>
+    <div className="container mx-auto px-4 py-8 lg:py-12">
+      <div className="mb-8 flex flex-col items-center justify-center">
+        <h1 className="mb-4 inline-block font-bold text-3xl underline decoration-from-font decoration-primary underline-offset-8">공지사항</h1>
 
         <span>캠핑장에서 전해드리는 공지사항입니다.</span>
       </div>
 
-      <div className="bg-neutral-100 rounded max-w-4xl mx-auto px-6 shadow">
-        <Accordion type="single" collapsible>
-          <AccordionItem value="item-1">
-            <AccordionTrigger className="font-semibold text-lg">입장 시간 전에 미리 들어갈 수 있나요?</AccordionTrigger>
-            <AccordionContent className="whitespace-pre-line">
-              {
-                "현장 준비가 어느 정도 완료된 상태라면 직원의 안내에 따라 입장 시간보다 조금 더 빨리 입장이 가능할 수 있습니다.\n단, 상황에 따라 변동 될 수 있다는 점 참고해주시면 감사하겠습니다.\n\n체크인 하시기 전, 자리에 짐을 먼저 옮기거나 먼저 입장하실 수는 없습니다."
-              }
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+      <div className="mx-auto max-w-4xl border-y px-6">
+        {articles.length === 0 ? (
+          <div className="py-4 text-center text-lg">공지사항이 없습니다.</div>
+        ) : (
+          articles.map((article: Article) => (
+            <div key={article.id} className="flex flex-col items-center justify-between border-b py-4 last:border-0 sm:flex-row">
+              <div className="flex items-center justify-between gap-8">
+                <span className="min-w-8 text-center">{article.id}</span>
+                <Link href={`/notices/${article.id}`} className="font-semibold text-lg">
+                  {article.title}
+                </Link>
+              </div>
+              <div className="text-muted-foreground text-sm">{new Date(article.created_at).toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })}</div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

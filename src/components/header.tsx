@@ -6,7 +6,7 @@ import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMe
 
 export default function Header() {
   return (
-    <header className="flex flex-col items-center justify-center py-2 gap-4 border-b shadow sticky w-full top-0 bg-white z-10">
+    <header className="sticky top-0 z-10 flex w-full flex-col items-center justify-center gap-4 border-b bg-white py-2 shadow">
       <Link href="/">
         <Image src="https://placehold.co/180x60.png" alt="logo" width={180} height={60} priority />
         <span className="sr-only">title</span>
@@ -28,7 +28,7 @@ function Navigation() {
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <NavigationMenuLink href="/booking">
+          <NavigationMenuLink href="/reservation">
             <span className="font-bold text-lg">실시간 예약</span>
           </NavigationMenuLink>
         </NavigationMenuItem>
@@ -43,10 +43,10 @@ function Navigation() {
               <div className="row-span-3">
                 <NavigationMenuLink asChild>
                   <Link
-                    className="from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-linear-to-b p-6 no-underline outline-hidden select-none focus:shadow-md"
+                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-linear-to-b from-muted/50 to-muted p-6 no-underline outline-hidden focus:shadow-md"
                     href="/introduce"
                   >
-                    <div className="mt-4 mb-2 text-lg font-medium">캠핑장명</div>
+                    <div className="mt-4 mb-2 font-medium text-lg">캠핑장명</div>
                     <p className="text-muted-foreground text-sm leading-tight">캠핑장 소개</p>
                   </Link>
                 </NavigationMenuLink>
@@ -54,22 +54,22 @@ function Navigation() {
 
               <NavigationMenuLink asChild>
                 <Link href="/sites">
-                  <div className="text-sm leading-none font-medium">시설 안내</div>
-                  <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">캠핑장 시설 안내</p>
+                  <div className="font-medium text-sm leading-none">시설 안내</div>
+                  <p className="line-clamp-2 text-muted-foreground text-sm leading-snug">캠핑장 시설 안내</p>
                 </Link>
               </NavigationMenuLink>
 
               <NavigationMenuLink asChild>
                 <Link href="/pricing">
-                  <div className="text-sm leading-none font-medium">요금 안내</div>
-                  <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">캠핑장 이용 요금 안내</p>
+                  <div className="font-medium text-sm leading-none">요금 안내</div>
+                  <p className="line-clamp-2 text-muted-foreground text-sm leading-snug">캠핑장 이용 요금 안내</p>
                 </Link>
               </NavigationMenuLink>
 
               <NavigationMenuLink asChild>
                 <Link href="/location">
-                  <div className="text-sm leading-none font-medium">오시는 길</div>
-                  <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">캠핑장까지 오시는 길</p>
+                  <div className="font-medium text-sm leading-none">오시는 길</div>
+                  <p className="line-clamp-2 text-muted-foreground text-sm leading-snug">캠핑장까지 오시는 길</p>
                 </Link>
               </NavigationMenuLink>
             </div>

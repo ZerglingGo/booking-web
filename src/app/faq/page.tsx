@@ -6,25 +6,30 @@ export const metadata: Metadata = {
   description: "캠핑장 이용 시 자주 묻는 질문 사항들입니다.",
 };
 
-export default function Page() {
+export default async function Page() {
+  const data = await fetch(`${process.env.API_ENDPOINT}/api/questions`).catch(() => null);
+  const questions = await data?.json().catch(() => []);
+
   return (
-    <div className="container py-8 lg:py-12 px-4 mx-auto">
-      <div className="flex items-center flex-col justify-center mb-8">
-        <h1 className="inline-block underline-offset-8 underline decoration-primary decoration-from-font font-bold text-3xl mb-4">자주 묻는 질문</h1>
+    <div className="container mx-auto px-4 py-8 lg:py-12">
+      <div className="mb-8 flex flex-col items-center justify-center">
+        <h1 className="mb-4 inline-block font-bold text-3xl underline decoration-from-font decoration-primary underline-offset-8">자주 묻는 질문</h1>
 
         <span>캠핑장 이용 시 자주 묻는 질문 사항들입니다.</span>
       </div>
 
-      <div className="bg-neutral-100 rounded max-w-4xl mx-auto px-6 shadow">
+      <div className="mx-auto max-w-4xl rounded bg-neutral-100 px-6 shadow">
         <Accordion type="single" collapsible>
-          <AccordionItem value="item-1">
-            <AccordionTrigger className="font-semibold text-lg">입장 시간 전에 미리 들어갈 수 있나요?</AccordionTrigger>
-            <AccordionContent className="whitespace-pre-line">
-              {
-                "현장 준비가 어느 정도 완료된 상태라면 직원의 안내에 따라 입장 시간보다 조금 더 빨리 입장이 가능할 수 있습니다.\n단, 상황에 따라 변동 될 수 있다는 점 참고해주시면 감사하겠습니다.\n\n체크인 하시기 전, 자리에 짐을 먼저 옮기거나 먼저 입장하실 수는 없습니다."
-              }
-            </AccordionContent>
-          </AccordionItem>
+          {questions.length === 0 ? (
+            <div className="py-4 text-center text-lg">내용이 없습니다.</div>
+          ) : (
+            questions.map((question: Question) => (
+              <AccordionItem key={question.id} value={`item-${question.id}`}>
+                <AccordionTrigger className="font-semibold text-lg">{question.question}</AccordionTrigger>
+                <AccordionContent className="whitespace-pre-line">{question.answer}</AccordionContent>
+              </AccordionItem>
+            ))
+          )}
         </Accordion>
       </div>
     </div>

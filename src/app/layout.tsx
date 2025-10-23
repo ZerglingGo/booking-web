@@ -3,6 +3,7 @@ import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import { SWRProvider } from "@/lib/swr-provider";
 
 const notoSansKR = Noto_Sans_KR({
   variable: "--font-noto-sans-kr",
@@ -25,9 +26,11 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={`${notoSansKR.variable} antialiased`}>
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <SWRProvider>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </SWRProvider>
       </body>
     </html>
   );

@@ -8,14 +8,14 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="container py-8 lg:py-12 px-4 mx-auto">
-      <div className="flex items-center flex-col justify-center mb-8">
-        <h1 className="inline-block underline-offset-8 underline decoration-primary decoration-from-font font-bold text-3xl mb-4">요금 안내</h1>
+    <div className="container mx-auto px-4 py-8 lg:py-12">
+      <div className="mb-8 flex flex-col items-center justify-center">
+        <h1 className="mb-4 inline-block font-bold text-3xl underline decoration-from-font decoration-primary underline-offset-8">요금 안내</h1>
 
         <span>캠핑장 이용 요금을 안내해드립니다.</span>
       </div>
 
-      <div className="bg-neutral-100 rounded max-w-4xl mx-auto px-6 shadow">
+      <div className="mx-auto max-w-4xl rounded bg-neutral-100 px-6 shadow">
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
             <AccordionTrigger className="font-semibold text-lg">입장 시간 전에 미리 들어갈 수 있나요?</AccordionTrigger>

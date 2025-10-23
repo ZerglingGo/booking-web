@@ -9,19 +9,19 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="container py-8 lg:py-12 px-4 mx-auto">
-      <div className="flex items-center flex-col justify-center mb-8">
-        <h1 className="inline-block underline-offset-8 underline decoration-primary decoration-from-font font-bold text-3xl mb-4">오시는 길</h1>
+    <div className="container mx-auto px-4 py-8 lg:py-12">
+      <div className="mb-8 flex flex-col items-center justify-center">
+        <h1 className="mb-4 inline-block font-bold text-3xl underline decoration-from-font decoration-primary underline-offset-8">오시는 길</h1>
 
         <span>캠핑장까지 오시는 길을 안내해 드립니다.</span>
       </div>
 
-      <div className="flex flex-col items-stretch gap-4 max-w-4xl mx-auto">
-        <div className="text-center rounded border p-4 flex flex-col gap-2">
+      <div className="mx-auto flex max-w-4xl flex-col items-stretch gap-4">
+        <div className="flex flex-col gap-2 rounded border p-4 text-center">
           <h2 className="font-bold text-3xl">캠핑장명</h2>
           <span className="font-semibold">캠핑장 주소</span>
 
-          <span className="font-semibold mt-2">
+          <span className="mt-2 font-semibold">
             연락처{" "}
             <Link href="tel:031-123-1234" className="font-normal">
               031-123-1234
