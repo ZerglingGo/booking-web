@@ -8,8 +8,8 @@ export default function LocationView() {
 
   return (
     <div className="mx-auto w-full overflow-hidden rounded border shadow">
-      <KakaoMap className="h-128 w-full" center={{ lat: 37.56647, lng: 126.9705 }} level={4} mapTypeId={"ROADMAP"}>
-        <MapMarker position={{ lat: 37.56647, lng: 126.9705 }} />
+      <KakaoMap className="h-128 w-full" center={{ lat: 37.194881754, lng: 126.794678659 }} level={5} mapTypeId={"ROADMAP"}>
+        <MapMarker position={{ lat: 37.194881754, lng: 126.794678659 }} />
         <ZoomControl position={"RIGHT"} />
       </KakaoMap>
     </div>

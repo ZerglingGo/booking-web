@@ -15,13 +15,13 @@ export default function Page() {
 
       <div className="mx-auto max-w-4xl">
         <div className="flex flex-col gap-2 rounded border p-4 text-center">
-          <h2 className="font-bold text-3xl">캠핑장명</h2>
-          <span className="font-semibold">캠핑장 주소</span>
+          <h2 className="font-bold text-3xl">어썸월드 화성점</h2>
+          <span className="font-semibold">경기도 화성시 남양읍 마도공단로 120-14</span>
 
           <span className="mt-2 font-semibold">
             연락처{" "}
-            <Link href="tel:031-123-1234" className="font-normal">
-              031-123-1234
+            <Link href="tel:050-6889-8237" className="font-normal">
+              050-6889-8237
             </Link>
           </span>
         </div>

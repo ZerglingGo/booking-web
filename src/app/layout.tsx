@@ -12,8 +12,8 @@ const notoSansKR = Noto_Sans_KR({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s - 캠핑장명",
-    default: "캠핑장명",
+    template: "%s - 어썸월드 화성점",
+    default: "어썸월드 화성점",
   },
   description: "캠핑장 소개",
 };

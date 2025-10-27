@@ -8,7 +8,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-10 flex w-full flex-col items-center justify-center gap-4 border-b bg-white py-2 shadow">
       <Link href="/">
-        <Image src="https://placehold.co/180x60.png" alt="logo" width={180} height={60} priority />
+        <Image src="/logo.png" alt="logo" width={64} height={60} priority />
         <span className="sr-only">title</span>
       </Link>
 
@@ -46,7 +46,7 @@ function Navigation() {
                     className="flex h-full w-full select-none flex-col justify-end rounded-md bg-linear-to-b from-muted/50 to-muted p-6 no-underline outline-hidden focus:shadow-md"
                     href="/introduce"
                   >
-                    <div className="mt-4 mb-2 font-medium text-lg">캠핑장명</div>
+                    <div className="mt-4 mb-2 font-medium text-lg">어썸월드 화성점</div>
                     <p className="text-muted-foreground text-sm leading-tight">캠핑장 소개</p>
                   </Link>
                 </NavigationMenuLink>
