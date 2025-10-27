@@ -11,7 +11,7 @@ export default async function Footer() {
           <div className="mx-auto flex max-w-xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-secondary-foreground lg:mx-0 lg:justify-start">
             <div>어썸월드 화성점</div>
             <div>대표 신명호, 최승우</div>
-            <div>개인정보관리책임자 홍길동</div>
+            <div>개인정보관리책임자 신명호, 최승우</div>
             <div>연락처: 050-6889-8237</div>
             <div>경기도 화성시 남양읍 마도공단로 120-14</div>
             <div>사업자등록번호: 216-88-03406</div>
