@@ -3,6 +3,8 @@ type Article = {
   category: string;
   title: string;
   content: string;
+  image: string | null;
+  image_url: string | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -27,8 +29,13 @@ type Zone = {
   check_out_time: string;
   is_active: boolean;
   order: number;
+  description: string;
   cover_image: string | null;
   map_image: string | null;
+  cover_image_url: string | null;
+  map_image_url: string | null;
+  price: number;
+  additional_person_price: number;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;

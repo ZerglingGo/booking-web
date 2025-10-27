@@ -44,7 +44,7 @@ function Navigation() {
                 <NavigationMenuLink asChild>
                   <Link
                     className="flex h-full w-full select-none flex-col justify-end rounded-md bg-linear-to-b from-muted/50 to-muted p-6 no-underline outline-hidden focus:shadow-md"
-                    href="/introduce"
+                    href="/"
                   >
                     <div className="mt-4 mb-2 font-medium text-lg">어썸월드 화성점</div>
                     <p className="text-muted-foreground text-sm leading-tight">캠핑장 소개</p>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -46,6 +47,9 @@ export default async function Page({ params }: { params: { notice_id: string } }
 
           <h2 className="mb-2 font-semibold text-2xl">{article.title}</h2>
           <div className="mb-6 text-muted-foreground text-sm">
+            {article.image_url && (
+              <Image src={article.image_url} alt="공지사항 이미지" width={0} height={0} sizes="100vw" style={{ width: "100%", height: "auto" }} className="mb-4 rounded" />
+            )}
             {new Date(article.created_at).toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })}
           </div>
 

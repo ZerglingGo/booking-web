@@ -10,6 +10,7 @@ export default function Reservation() {
   const [date, setDate] = useState<Date>(new Date());
   const [zone, setZone] = useState<Zone | null>(null);
   const [site, setSite] = useState<Site | null>(null);
+  const [additionalPerson, setAdditionalPerson] = useState<number>(0);
 
   return (
     <div>
@@ -24,8 +25,10 @@ export default function Reservation() {
         locale={ko}
       />
 
-      {!zone && <ZoneSelector setZone={setZone} />}
-      {zone && <SiteSelector zone={zone} site={site} date={date} setZone={setZone} setSite={setSite} />}
+      {!zone && <ZoneSelector date={date} setZone={setZone} />}
+      {zone && (
+        <SiteSelector zone={zone} site={site} date={date} setZone={setZone} setSite={setSite} additionalPerson={additionalPerson} setAdditionalPerson={setAdditionalPerson} />
+      )}
     </div>
   );
 }

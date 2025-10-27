@@ -1,10 +1,12 @@
 "use client";
 
 import { format } from "date-fns";
-import { ArrowLeftIcon, CalendarIcon, ClockIcon, UsersIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, ClockIcon, MinusIcon, PlusIcon, UsersIcon } from "lucide-react";
 import Image from "next/image";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
@@ -12,16 +14,20 @@ export default function SiteSelector({
   zone,
   site,
   date,
+  additionalPerson,
   setZone,
   setSite,
+  setAdditionalPerson,
 }: {
   zone: Zone;
   site: Site | null;
   date: Date;
+  additionalPerson: number;
   setZone: (zone: Zone | null) => void;
   setSite: (site: Site) => void;
+  setAdditionalPerson: (count: number) => void;
 }) {
-  const { data } = useSWR<Site[]>("/api/sites");
+  const { data } = useSWR<Site[]>(`/api/zones/${zone.id}/sites`);
 
   return (
     <div className="mt-8 grid grid-cols-2 gap-4">
@@ -33,12 +39,12 @@ export default function SiteSelector({
       </div>
 
       <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg">
-        {zone.cover_image && <Image fill objectFit="cover" src={zone.cover_image} alt="커버 이미지" />}
+        {zone.cover_image_url && <Image fill objectFit="cover" src={zone.cover_image_url} alt="커버 이미지" />}
 
         <div className="z-10 flex size-full flex-col justify-end gap-8 bg-black/75 p-8 text-background backdrop-blur-lg">
           <div className="flex items-end gap-8">
             <div className="relative h-[250px] w-[200px] overflow-hidden rounded-lg">
-              {zone.cover_image && <Image fill objectFit="cover" src={zone.cover_image} alt="커버 이미지" />}
+              {zone.cover_image_url && <Image fill objectFit="cover" src={zone.cover_image_url} alt="커버 이미지" />}
             </div>
 
             <div className="flex flex-col">
@@ -77,7 +83,7 @@ export default function SiteSelector({
           <Separator className="bg-neutral-600" />
 
           <div className="text-right">
-            <span className="font-extrabold text-2xl">50,000원</span>
+            <span className="font-extrabold text-2xl">{zone.price.toLocaleString("ko-KR")}원</span>
           </div>
         </div>
       </div>
@@ -87,7 +93,7 @@ export default function SiteSelector({
           <h3 className="mb-4 font-bold text-lg">좌석 선택</h3>
 
           <div className="relative w-full overflow-hidden rounded-lg">
-            {zone.map_image && <Image src={zone.map_image} alt="구역 이미지" width={0} height={0} sizes="100vw" style={{ width: "100%", height: "auto" }} />}
+            {zone.map_image_url && <Image src={zone.map_image_url} alt="구역 이미지" width={0} height={0} sizes="100vw" style={{ width: "100%", height: "auto" }} />}
           </div>
 
           <div className="mt-4 grid grid-cols-5 gap-2">
@@ -106,17 +112,35 @@ export default function SiteSelector({
           </div>
         </div>
 
+        <div className="mt-6 rounded-lg border px-8 py-6">
+          <h3 className="mb-4 font-bold text-lg">추가 인원</h3>
+
+          <div className="mt-4 flex items-center justify-between">
+            <ButtonGroup>
+              <Button variant="outline" className="cursor-pointer" onClick={() => setAdditionalPerson(Math.max(0, additionalPerson - 1))}>
+                <MinusIcon size={12} />
+              </Button>
+              <Input readOnly value={additionalPerson} className="flex w-12 items-center justify-center text-center" />
+              <Button variant="outline" className="cursor-pointer" onClick={() => setAdditionalPerson(additionalPerson + 1)}>
+                <PlusIcon size={12} />
+              </Button>
+            </ButtonGroup>
+
+            <div>{(zone.additional_person_price * additionalPerson).toLocaleString("ko-KR")}원</div>
+          </div>
+        </div>
+
         <div className="mt-8 flex flex-col gap-4">
           <div className="flex items-center justify-between px-2">
             <span>총 결제금액</span>
-            <span className="font-bold text-2xl text-red-500">50,000원</span>
+            <span className="font-bold text-2xl text-red-500">{(zone.price + zone.additional_person_price * additionalPerson).toLocaleString("ko-KR")}원</span>
           </div>
 
           <Button className="cursor-pointer py-6 transition">예약하기</Button>
         </div>
       </div>
 
-      <div className="col-span-2 rounded-lg border p-4">hello</div>
+      <div className="col-span-2 whitespace-pre-line rounded-lg border p-4">{zone.description}</div>
     </div>
   );
 }
