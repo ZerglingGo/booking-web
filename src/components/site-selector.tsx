@@ -196,7 +196,7 @@ export default function SiteSelector({
                 type="button"
                 onClick={() => setSite(s)}
                 className={cn(
-                  "flex cursor-pointer flex-col items-center justify-center rounded-lg border p-2 text-sm hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-75",
+                  "flex cursor-pointer flex-col items-center justify-center rounded-lg border p-2 text-sm hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-25",
                   {
                     "border-primary bg-primary/20": site?.id === s.id,
                   },
