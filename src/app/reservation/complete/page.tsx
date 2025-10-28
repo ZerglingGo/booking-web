@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import ReservationComplete from "@/components/reservation-complete";
 
 export const metadata: Metadata = {
@@ -14,7 +15,9 @@ export default function Page() {
       </div>
 
       <div className="mx-auto max-w-4xl">
-        <ReservationComplete />
+        <Suspense fallback={<div className="rounded border p-6 text-center">예약 정보를 불러오는 중입니다.</div>}>
+          <ReservationComplete />
+        </Suspense>
       </div>
     </div>
   );
