@@ -195,9 +195,12 @@ export default function SiteSelector({
                 key={s.id}
                 type="button"
                 onClick={() => setSite(s)}
-                className={cn("flex cursor-pointer flex-col items-center justify-center rounded-lg border p-2 text-sm hover:bg-primary/10", {
-                  "border-primary bg-primary/20": site?.id === s.id,
-                })}
+                className={cn(
+                  "flex cursor-pointer flex-col items-center justify-center rounded-lg border p-2 text-sm hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-75",
+                  {
+                    "border-primary bg-primary/20": site?.id === s.id,
+                  },
+                )}
                 disabled={s.is_reserved}
               >
                 <span className="font-semibold">{s.name}</span>
