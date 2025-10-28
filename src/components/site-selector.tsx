@@ -15,6 +15,15 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
+declare global {
+  interface Window {
+    smartropay?: {
+      init(config: { mode: "REAL" | "TEST" }): void;
+      payment(options: { FormId: string; Callback(res: { Tid: string; TrAuthKey: string }): void }): void;
+    };
+  }
+}
+
 export default function SiteSelector({
   zone,
   site,
@@ -90,6 +99,7 @@ export default function SiteSelector({
           .then((res) => res.json())
           .then((data) => {
             if (!encDataRef.current) return;
+            if (!window.smartropay) return;
 
             encDataRef.current.value = data.encrypted_data;
 
@@ -100,7 +110,7 @@ export default function SiteSelector({
             window.smartropay.payment({
               FormId: "tranMgr",
               Callback: (res) => {
-                var approvalForm = document.approvalForm;
+                var approvalForm = document.getElementById("approvalForm") as HTMLFormElement;
                 approvalForm.Tid.defaultValue = res.Tid;
                 approvalForm.TrAuthKey.defaultValue = res.TrAuthKey;
                 approvalForm.action = returnUrl;
