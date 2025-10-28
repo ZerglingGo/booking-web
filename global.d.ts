@@ -53,3 +53,22 @@ type Site = {
   updated_at: Date;
   deleted_at: Date | null;
 };
+
+type Reservation = {
+  id: number;
+  site_id: number;
+  zone_name: string;
+  site_name: string;
+  name: string;
+  contact: string;
+  additional_person: number;
+  price: number;
+  refunded_price: number;
+  pay_id: string;
+  pay_tid: string | null;
+  pay_status: string;
+  reservation_at: Date;
+  canceled_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+};

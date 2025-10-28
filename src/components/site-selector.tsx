@@ -1,12 +1,17 @@
 "use client";
 
-import { format } from "date-fns";
+import type { CheckedState } from "@radix-ui/react-checkbox";
+import { addDays, format } from "date-fns";
 import { ArrowLeftIcon, CalendarIcon, ClockIcon, MinusIcon, PlusIcon, UsersIcon } from "lucide-react";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +33,83 @@ export default function SiteSelector({
   setAdditionalPerson: (count: number) => void;
 }) {
   const { data } = useSWR<Site[]>(`/api/zones/${zone.id}/sites`);
+
+  const [name, setName] = useState<string>("");
+  const [contact, setContact] = useState<string>("");
+  const [terms, setTerms] = useState<CheckedState>(false);
+
+  // random string
+  const mid = process.env.NEXT_PUBLIC_SMARTRO_MID;
+  const ediDate = format(new Date(), "yyyyMMddHHmmss");
+  const moidRef = useRef<HTMLInputElement>(null);
+  const encDataRef = useRef<HTMLInputElement>(null);
+
+  const returnUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/smartro/approval`;
+  const stopUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reservation`;
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = `https://tpay.smartropay.co.kr/asset/js/SmartroPAY-1.0.min.js?version=${format(new Date(), "yyyyMMdd")}`;
+    script.type = "text/javascript";
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
+  const goPay = () => {
+    if (!site) return;
+
+    const amount = (zone.price + zone.additional_person_price * additionalPerson).toString();
+    fetch("/api/smartro/moid", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        date: format(date, "yyyy-MM-dd"),
+        site_id: site.id,
+        name: name,
+        contact: contact,
+        additional_person: additionalPerson,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!moidRef.current) return;
+
+        moidRef.current.value = data.moid;
+
+        fetch("/api/smartro/encrypt", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data: [ediDate, amount] }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (!encDataRef.current) return;
+
+            encDataRef.current.value = data.encrypted_data;
+
+            window.smartropay.init({
+              mode: "REAL",
+            });
+
+            window.smartropay.payment({
+              FormId: "tranMgr",
+              Callback: (res) => {
+                var approvalForm = document.approvalForm;
+                approvalForm.Tid.defaultValue = res.Tid;
+                approvalForm.TrAuthKey.defaultValue = res.TrAuthKey;
+                approvalForm.action = returnUrl;
+                approvalForm.submit();
+              },
+            });
+          });
+      });
+  };
 
   return (
     <div className="mt-8 grid grid-cols-2 gap-4">
@@ -130,17 +212,117 @@ export default function SiteSelector({
           </div>
         </div>
 
+        <div className="mt-6 rounded-lg border px-8 py-6">
+          <h3 className="mb-4 font-bold text-lg">예약자 정보</h3>
+
+          <div className="flex flex-col gap-4">
+            <Input placeholder="이름" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input placeholder="연락처" value={contact} onChange={(e) => setContact(e.target.value)} inputMode="numeric" />
+
+            <div className="flex cursor-pointer items-center gap-2 rounded-md border pl-2 shadow-xs transition hover:bg-neutral-100">
+              <Checkbox id="terms" className="transition" checked={terms} onCheckedChange={(c) => setTerms(c)} />
+              <Label htmlFor="terms" className="block w-full py-2.5 text-secondary-foreground">
+                <Dialog>
+                  <DialogTrigger className="cursor-pointer text-primary hover:underline" onClick={(e) => e.stopPropagation()}>
+                    시설 이용 방침
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>시설 이용 방침</DialogTitle>
+                      <DialogDescription>
+                        - 본 패키지는 취사 가능 패키지입니다
+                        <br />- 정해진 입실, 퇴실 시간은 반드시 지켜주세요
+                        <br />- 시설 내에서는 절대 금연입니다
+                        <br />- 미성년자는 부모님 동행이 있어야만 입장 가능합니다
+                        <br />- 반려동물은 입장을 금하오니 양해바랍니다
+                        <br />- 음식물이나 기타쓰레기, 재활용품 등은 분리수거를 해주셔야 합니다.
+                        <br />- 지나친 음무/가무/소란은 다른 분들의 휴식을 방해하므로 퇴장 조치 될 수 있는 점 양해 부탁드립니다
+                        <br />- 시설 내 물품 및 설치물의 분실 및 훼손의 책임은 이용자에게 있으니 주의 부탁드립니다
+                        <br />- 화약, 폭죽 등은 사용하실 수 없습니다
+                        <br />- 화재로 인한 책임은 이용자에게 있습니다
+                        <br />- 이용자의 귀중품 분실 시 그 책임은 이용자에게 있습니다
+                      </DialogDescription>
+                    </DialogHeader>
+                  </DialogContent>
+                </Dialog>
+                과{" "}
+                <Dialog>
+                  <DialogTrigger className="cursor-pointer text-primary hover:underline" onClick={(e) => e.stopPropagation()}>
+                    개인정보 처리방침
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>개인정보 처리방침</DialogTitle>
+                      <DialogDescription>
+                        어썸월드는 개인정보보호법 등 관련 법률에 따라 개인정보 수집ㆍ이용 시 정보 주체에게 사전 고지하고 이에 대한 동의를 받습니다.
+                        <br />
+                        <br />
+                        1. 개인정보의 수집ㆍ이용 목적
+                        <br />- 수집ㆍ이용 목적 : 고객 문의 결과 회신
+                        <br />- 수집ㆍ이용 방법 : 회사 홈페이지
+                        <br />
+                        <br />
+                        2. 수집하려는 개인정보의 항목
+                        <br />- 필수항목 : 성명, 연락처, 이메일주소, 회사명
+                        <br />- 선택항목 : 없음
+                        <br />
+                        <br />
+                        3. 보유 및 이용 기간
+                        <br />- 어썸월드 개인정보 수집ㆍ이용 목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 다만 관련 법률에 의해 보존의무가 있는 경우에는 법령이 지정한
+                        일정기간 보존합니다.
+                        <br />
+                        <br />
+                        4. 귀하는 귀하의 개인정보 수집·이용에 대한 동의를 거부하실 권리가 있으며, 동의하지 않더라도 고객문의를 하는데 제약은 없습니다.
+                        <br />
+                        <br />- 다만, 동의를 거부하실 경우 회사는 문의에 대한 결과를 회신하지 못하거나 적기에 처리하지 못할 수 있습니다.
+                      </DialogDescription>
+                    </DialogHeader>
+                  </DialogContent>
+                </Dialog>
+                에 동의합니다.
+              </Label>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-8 flex flex-col gap-4">
           <div className="flex items-center justify-between px-2">
             <span>총 결제금액</span>
             <span className="font-bold text-2xl text-red-500">{(zone.price + zone.additional_person_price * additionalPerson).toLocaleString("ko-KR")}원</span>
           </div>
 
-          <Button className="cursor-pointer py-6 transition">예약하기</Button>
+          <Button className="cursor-pointer py-6 transition" onClick={() => goPay()} disabled={!site || !name || !contact || !terms}>
+            예약하기
+          </Button>
         </div>
       </div>
 
       <div className="col-span-2 whitespace-pre-line rounded-lg border p-4">{zone.description}</div>
+
+      <div className="hidden">
+        <form id="tranMgr" name="tranMgr" method="post">
+          <input type="hidden" readOnly name="PayMethod" defaultValue="CARD" />
+          <input type="hidden" readOnly name="GoodsCnt" defaultValue="1" />
+          <input type="hidden" readOnly name="GoodsName" value={`${zone.name} ${site?.name}사이트`} />
+          <input type="hidden" readOnly name="Amt" value={zone.price + zone.additional_person_price * additionalPerson} />
+          <input type="hidden" readOnly name="Moid" ref={moidRef} />
+          <input type="hidden" readOnly name="Mid" defaultValue={mid} />
+          <input type="hidden" readOnly name="ReturnUrl" defaultValue={returnUrl} />
+          <input type="hidden" readOnly name="StopUrl" defaultValue={stopUrl} />
+          <input type="hidden" readOnly name="BuyerName" value={name} />
+          <input type="hidden" readOnly name="BuyerTel" value={contact} />
+          <input type="hidden" readOnly name="BuyerEmail" defaultValue="" />
+          <input type="hidden" readOnly name="VbankExpDate" defaultValue={format(addDays(new Date(), 1), "yyyyMMdd")} />
+          <input type="hidden" readOnly name="EncryptData" ref={encDataRef} />
+          <input type="hidden" readOnly name="GoodsCl" defaultValue="0" />
+          <input type="hidden" readOnly name="EdiDate" defaultValue={ediDate} />
+        </form>
+
+        <form id="approvalForm" name="approvalForm" method="post">
+          <input type="hidden" readOnly id="Tid" name="Tid" />
+          <input type="hidden" readOnly id="TrAuthKey" name="TrAuthKey" />
+        </form>
+      </div>
     </div>
   );
 }

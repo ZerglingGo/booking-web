@@ -13,7 +13,7 @@ export default function ZoneSelector({ date, setZone }: { date: Date; setZone: (
       {data?.map((zone) => (
         <button key={`zone-${zone.id}`} type="button" className="cursor-pointer rounded-lg p-2 text-left transition hover:bg-neutral-100" onClick={() => setZone(zone)}>
           <div className="relative aspect-square w-full overflow-hidden rounded-lg">
-            {zone.cover_image_url && <Image fill objectFit="cover" src={zone.cover_image_url} alt="커버 이미지" />}
+            {zone.cover_image_url && <Image fill objectFit="cover" src={zone.cover_image_url} alt="커버 이미지" className="pointer-events-none" />}
           </div>
 
           <div className="mt-2">

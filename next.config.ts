@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
         protocol: "https",
         hostname: "**.xn--hy1b10z9tb76a.kr",
       },
