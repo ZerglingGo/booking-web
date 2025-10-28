@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "*.어썸월드.kr",
+        hostname: "**.xn--hy1b10z9tb76a.kr",
       },
     ],
   },
