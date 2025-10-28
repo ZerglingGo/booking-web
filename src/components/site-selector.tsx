@@ -135,11 +135,11 @@ export default function SiteSelector({
 
         <div className="z-10 flex size-full flex-col justify-end gap-8 bg-black/75 p-8 text-background backdrop-blur-lg">
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end">
-            <div className="absolute top-8 right-8 size-[160px] overflow-hidden rounded-lg md:relative md:top-0 md:right-0 md:h-[250px] md:w-[200px]">
+            <div className="absolute top-8 right-8 z-10 size-[160px] overflow-hidden rounded-lg md:relative md:top-0 md:right-0 md:h-[250px] md:w-[200px]">
               {zone.cover_image_url && <Image fill objectFit="cover" src={zone.cover_image_url} alt="커버 이미지" />}
             </div>
 
-            <div className="flex flex-col">
+            <div className="z-20 flex flex-col">
               <span className="font-extrabold text-3xl">{zone.name}</span>
 
               <div className="mt-6 flex flex-col gap-2 text-secondary">
