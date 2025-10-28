@@ -41,7 +41,8 @@ export default function SiteSelector({
   setSite: (site: Site) => void;
   setAdditionalPerson: (count: number) => void;
 }) {
-  const { data } = useSWR<Site[]>(`/api/zones/${zone.id}/sites`);
+  const dateString = format(date, "yyyy-MM-dd");
+  const { data } = useSWR<Site[]>(`/api/zones/${zone.id}/sites?date=${dateString}`);
 
   const [name, setName] = useState<string>("");
   const [contact, setContact] = useState<string>("");
@@ -197,6 +198,7 @@ export default function SiteSelector({
                 className={cn("flex cursor-pointer flex-col items-center justify-center rounded-lg border p-2 text-sm hover:bg-primary/10", {
                   "border-primary bg-primary/20": site?.id === s.id,
                 })}
+                disabled={s.is_reserved}
               >
                 <span className="font-semibold">{s.name}</span>
               </button>

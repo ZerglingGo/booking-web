@@ -48,6 +48,7 @@ type Site = {
   person_capacity: number; // nullable in DB but treated as number in app
   additional_person_capacity: number; // nullable in DB but treated as number in app
   is_active: boolean;
+  is_reserved: boolean;
   order: number;
   created_at: Date;
   updated_at: Date;
