@@ -130,12 +130,12 @@ export default function SiteSelector({
         </Button>
       </div>
 
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg shadow-lg">
+      <div className="relative col-span-2 aspect-square w-full overflow-hidden rounded-lg shadow-lg lg:col-span-1">
         {zone.cover_image_url && <Image fill objectFit="cover" src={zone.cover_image_url} alt="커버 이미지" />}
 
         <div className="z-10 flex size-full flex-col justify-end gap-8 bg-black/75 p-8 text-background backdrop-blur-lg">
-          <div className="flex items-end gap-8">
-            <div className="relative h-[250px] w-[200px] overflow-hidden rounded-lg">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end">
+            <div className="absolute top-8 right-8 size-[160px] overflow-hidden rounded-lg md:relative md:top-0 md:right-0 md:h-[250px] md:w-[200px]">
               {zone.cover_image_url && <Image fill objectFit="cover" src={zone.cover_image_url} alt="커버 이미지" />}
             </div>
 
@@ -180,7 +180,7 @@ export default function SiteSelector({
         </div>
       </div>
 
-      <div>
+      <div className="col-span-2 lg:col-span-1">
         <div className="rounded-lg border px-8 py-6">
           <h3 className="mb-4 font-bold text-lg">좌석 선택</h3>
 
@@ -188,7 +188,7 @@ export default function SiteSelector({
             {zone.map_image_url && <Image src={zone.map_image_url} alt="구역 이미지" width={0} height={0} sizes="100vw" style={{ width: "100%", height: "auto" }} />}
           </div>
 
-          <div className="mt-4 grid grid-cols-5 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
             {data?.map((s) => (
               <button
                 key={s.id}
