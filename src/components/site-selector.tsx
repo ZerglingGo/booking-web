@@ -315,7 +315,7 @@ export default function SiteSelector({
         <form id="tranMgr" name="tranMgr" method="post">
           <input type="hidden" readOnly name="PayMethod" defaultValue="CARD" />
           <input type="hidden" readOnly name="GoodsCnt" defaultValue="1" />
-          <input type="hidden" readOnly name="GoodsName" value={`${zone.name}`} />
+          <input type="hidden" readOnly name="GoodsName" value={`${dateString} ${zone.name}`} />
           <input type="hidden" readOnly name="Amt" value={zone.price + zone.additional_person_price * additionalPerson} />
           <input type="hidden" readOnly name="Moid" ref={moidRef} />
           <input type="hidden" readOnly name="Mid" defaultValue={mid} />
