@@ -12,6 +12,10 @@ export default function ZoneSelector({ date, setZone }: { date: Date; setZone: (
   return (
     <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
       {data?.map((zone) => {
+        if (zone.open_at && isBefore(date, zone.open_at)) {
+          return null;
+        }
+
         if (zone.close_at && isBefore(zone.close_at, date)) {
           return null;
         }
