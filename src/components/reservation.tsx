@@ -21,7 +21,7 @@ export default function Reservation() {
         className="mx-auto rounded-lg border"
         numberOfMonths={2}
         required
-        disabled={{ before: new Date(), ...(zone && { after: zone.close_at }) }}
+        disabled={{ before: zone?.open_at || new Date(), ...(zone && { after: zone.close_at }) }}
         locale={ko}
       />
 
