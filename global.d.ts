@@ -36,6 +36,7 @@ type Zone = {
   map_image_url: string | null;
   price: number;
   additional_person_price: number;
+  close_at: Date | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;

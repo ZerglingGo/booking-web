@@ -1,6 +1,5 @@
 "use client";
 
-import { set } from "date-fns";
 import { useState } from "react";
 import { ko } from "react-day-picker/locale";
 import SiteSelector from "@/components/site-selector";
@@ -22,7 +21,7 @@ export default function Reservation() {
         className="mx-auto rounded-lg border"
         numberOfMonths={2}
         required
-        disabled={{ before: new Date(), after: set(new Date(), { year: 2025, month: 11, date: 31 }) }}
+        disabled={{ before: new Date(), ...(zone && { after: zone.close_at }) }}
         locale={ko}
       />
 

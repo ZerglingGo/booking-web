@@ -34,6 +34,12 @@ function Navigation() {
         </NavigationMenuItem>
 
         <NavigationMenuItem>
+          <NavigationMenuLink href="/reservation/check">
+            <span className="font-bold text-lg">예약 조회</span>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
           <NavigationMenuTrigger>
             <span className="font-bold text-lg">시설 안내</span>
           </NavigationMenuTrigger>
