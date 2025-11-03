@@ -1,16 +1,89 @@
 "use client";
 
+import { MenuIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export default function Header() {
+  const [open, setOpen] = useState(false);
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-10 flex w-full flex-col items-center justify-center gap-4 border-b bg-white py-2 shadow">
-      <Link href="/">
-        <Image src="/logo.png" alt="logo" width={64} height={60} priority />
-        <span className="sr-only">title</span>
-      </Link>
+      <div className="grid w-full grid-cols-3 items-center justify-between px-4">
+        <div>
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger className="block sm:hidden">
+              <MenuIcon />
+            </SheetTrigger>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>메뉴</SheetTitle>
+              </SheetHeader>
+
+              <div className="flex flex-1 flex-col gap-2 px-4 font-bold text-xl tracking-tight">
+                <div className="flex flex-col gap-2 px-1">
+                  <Link onClick={() => handleClose()} href="/">
+                    홈
+                  </Link>
+                  <Link onClick={() => handleClose()} href="/reservation">
+                    실시간 예약
+                  </Link>
+                  <Link onClick={() => handleClose()} href="/reservation/check">
+                    예약 조회
+                  </Link>
+                </div>
+
+                <Separator className="my-2" />
+
+                <div className="flex flex-col gap-2 px-1">
+                  <span className="font-normal text-neutral-500 text-sm">캠핑장 소개</span>
+                  <Link onClick={() => handleClose()} href="/sites">
+                    시설 안내
+                  </Link>
+                  <Link onClick={() => handleClose()} href="/pricing">
+                    요금 안내
+                  </Link>
+                  <Link onClick={() => handleClose()} href="/location">
+                    오시는 길
+                  </Link>
+                </div>
+
+                <Separator className="my-2" />
+
+                <div className="flex flex-col gap-2 px-1">
+                  <span className="font-normal text-neutral-500 text-sm">고객센터</span>
+                  <Link onClick={() => handleClose()} href="/notices">
+                    공지사항
+                  </Link>
+                  <Link onClick={() => handleClose()} href="/faq">
+                    자주 묻는 질문
+                  </Link>
+                  <Link onClick={() => handleClose()} href="/contact">
+                    연락처
+                  </Link>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="flex items-center justify-center">
+          <Link href="/">
+            <Image src="/logo.png" alt="logo" width={64} height={60} priority />
+            <span className="sr-only">title</span>
+          </Link>
+        </div>
+
+        <div></div>
+      </div>
 
       <Navigation />
     </header>
@@ -19,7 +92,7 @@ export default function Header() {
 
 function Navigation() {
   return (
-    <NavigationMenu viewport={false} delayDuration={0}>
+    <NavigationMenu viewport={false} delayDuration={0} className="hidden sm:block">
       <NavigationMenuList className="gap-4">
         <NavigationMenuItem>
           <NavigationMenuLink href="/">

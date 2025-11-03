@@ -7,8 +7,8 @@ export default async function Footer() {
       <div className="container px-4 py-8 lg:py-12">
         <Image src="/icon.png" alt="logo" width={64} height={64} priority className="mx-auto lg:mx-0" />
 
-        <div className="mt-4 flex flex-col justify-between gap-4 lg:flex-row">
-          <div className="mx-auto flex max-w-xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-secondary-foreground lg:mx-0 lg:justify-start">
+        <div className="mt-4 flex flex-col justify-between gap-4 text-xs lg:flex-row lg:text-base">
+          <div className="mx-auto flex max-w-xl flex-wrap items-center justify-center gap-x-2 gap-y-1 text-secondary-foreground lg:mx-0 lg:justify-start lg:gap-x-6 lg:gap-y-2">
             <div>어썸월드 화성점</div>
             <div>대표 신명호, 최승우</div>
             <div>개인정보관리책임자 신명호, 최승우</div>
