@@ -69,7 +69,6 @@ export default function Reservation() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <span className="font-medium text-sm">월</span>
         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="월 선택" />
