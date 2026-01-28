@@ -17,14 +17,20 @@ const addDays = (base: Date, days: number) => {
 };
 
 const toMonthKey = (value: Date) => `${value.getFullYear()}-${value.getMonth()}`;
-const HOLIDAY_KEYS = new Set(["1-1", "3-1", "5-5", "6-6", "8-15", "10-3", "10-9", "12-25"]);
-
-const isHoliday = (value: Date) => HOLIDAY_KEYS.has(`${value.getMonth() + 1}-${value.getDate()}`);
 const toDateKey = (value: Date) => {
   const year = value.getFullYear();
   const month = String(value.getMonth() + 1).padStart(2, "0");
   const day = String(value.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+const normalizeDate = (value?: Date | string | null) => {
+  if (!value) {
+    return undefined;
+  }
+  if (value instanceof Date) {
+    return value;
+  }
+  return new Date(`${value}T00:00:00`);
 };
 
 export default function Reservation() {
@@ -39,8 +45,10 @@ export default function Reservation() {
   const lastActionRef = useRef<"init" | "list" | "month" | "calendar">("init");
 
   const today = todayRef.current;
-  const minDate = zone?.open_at ?? today;
-  const maxDate = zone?.close_at ?? addDays(minDate, 90);
+  const zoneOpenAt = normalizeDate(zone?.open_at);
+  const zoneCloseAt = normalizeDate(zone?.close_at);
+  const minDate = zoneOpenAt ?? today;
+  const maxDate = zoneCloseAt ?? addDays(minDate, 90);
 
   const monthOptions = (() => {
     const options: { key: string; label: string }[] = [];
@@ -158,7 +166,7 @@ export default function Reservation() {
                 setSelectedMonth(toMonthKey(selected));
                 setCalendarOpen(false);
               }}
-              disabled={zone ? { before: zone.open_at || new Date(), after: zone.close_at || new Date() } : { before: minDate, after: maxDate }}
+              disabled={zone ? { before: zoneOpenAt || today, after: zoneCloseAt || today } : { before: minDate, after: maxDate }}
               locale={ko}
             />
           </PopoverContent>
@@ -169,7 +177,6 @@ export default function Reservation() {
         {dateOptions.map((option) => {
           const isSelected = option.toDateString() === date.toDateString();
           const isSunday = option.getDay() === 0;
-          const isHolidayDay = isHoliday(option);
           return (
             <button
               key={option.toISOString()}
@@ -184,7 +191,7 @@ export default function Reservation() {
               }`}
             >
               <div className="font-semibold">{option.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</div>
-              <div className={`text-xs ${isSunday || isHolidayDay ? "text-red-500" : "text-muted-foreground"}`}>{option.toLocaleDateString("ko-KR", { weekday: "short" })}</div>
+              <div className={`text-xs ${isSunday ? "text-red-500" : "text-muted-foreground"}`}>{option.toLocaleDateString("ko-KR", { weekday: "short" })}</div>
             </button>
           );
         })}
