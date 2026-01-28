@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { CalendarIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ko } from "react-day-picker/locale";
 import SiteSelector from "@/components/site-selector";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ZoneSelector from "@/components/zone-selector";
 
@@ -12,6 +17,15 @@ const addDays = (base: Date, days: number) => {
 };
 
 const toMonthKey = (value: Date) => `${value.getFullYear()}-${value.getMonth()}`;
+const HOLIDAY_KEYS = new Set(["1-1", "3-1", "5-5", "6-6", "8-15", "10-3", "10-9", "12-25"]);
+
+const isHoliday = (value: Date) => HOLIDAY_KEYS.has(`${value.getMonth() + 1}-${value.getDate()}`);
+const toDateKey = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 export default function Reservation() {
   const [date, setDate] = useState<Date>(new Date());
@@ -19,8 +33,12 @@ export default function Reservation() {
   const [site, setSite] = useState<Site | null>(null);
   const [additionalPerson, setAdditionalPerson] = useState<number>(0);
   const [selectedMonth, setSelectedMonth] = useState<string>(() => toMonthKey(new Date()));
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const dateListRef = useRef<HTMLDivElement | null>(null);
+  const todayRef = useRef(new Date());
+  const lastActionRef = useRef<"init" | "list" | "month" | "calendar">("init");
 
-  const today = new Date();
+  const today = todayRef.current;
   const minDate = zone?.open_at ?? today;
   const maxDate = zone?.close_at ?? addDays(minDate, 90);
 
@@ -51,6 +69,7 @@ export default function Reservation() {
     }
 
     if (!monthOptions.some((option) => option.key === selectedMonth)) {
+      lastActionRef.current = "month";
       setSelectedMonth(monthOptions[0].key);
     }
   }, [monthOptions, selectedMonth]);
@@ -62,14 +81,52 @@ export default function Reservation() {
 
     const isCurrentInMonth = dateOptions.some((option) => option.toDateString() === date.toDateString());
     if (!isCurrentInMonth) {
+      lastActionRef.current = "month";
       setDate(dateOptions[0]);
     }
   }, [dateOptions, date]);
 
+  useEffect(() => {
+    if (!dateOptions.length) {
+      return;
+    }
+
+    const selectedKey = toDateKey(date);
+    const todayKey = toDateKey(today);
+    const availableKeys = new Set(dateOptions.map((option) => toDateKey(option)));
+    const targetKey = availableKeys.has(selectedKey) ? selectedKey : availableKeys.has(todayKey) ? todayKey : toDateKey(dateOptions[0]);
+
+    const container = dateListRef.current;
+    const target = container?.querySelector<HTMLButtonElement>(`[data-date="${targetKey}"]`);
+    if (!target) {
+      return;
+    }
+
+    const containerRect = container?.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const isVisible = containerRect ? targetRect.left >= containerRect.left && targetRect.right <= containerRect.right : true;
+    const shouldScroll = lastActionRef.current !== "list" || !isVisible;
+
+    if (!shouldScroll) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      lastActionRef.current = "init";
+    });
+  }, [dateOptions, date, today]);
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+      <div className="flex flex-wrap items-center gap-3">
+        <Select
+          value={selectedMonth}
+          onValueChange={(value) => {
+            lastActionRef.current = "month";
+            setSelectedMonth(value);
+          }}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="월 선택" />
           </SelectTrigger>
@@ -81,23 +138,53 @@ export default function Reservation() {
             ))}
           </SelectContent>
         </Select>
+
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" type="button">
+              <CalendarIcon />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(selected) => {
+                if (!selected) {
+                  return;
+                }
+                lastActionRef.current = "calendar";
+                setDate(selected);
+                setSelectedMonth(toMonthKey(selected));
+                setCalendarOpen(false);
+              }}
+              disabled={zone ? { before: zone.open_at || new Date(), after: zone.close_at || new Date() } : { before: minDate, after: maxDate }}
+              locale={ko}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
-      <div className="mx-auto flex w-full gap-2 overflow-x-auto rounded-lg border p-3">
+      <div ref={dateListRef} className="mx-auto flex w-full gap-2 overflow-x-auto rounded-lg border p-3">
         {dateOptions.map((option) => {
           const isSelected = option.toDateString() === date.toDateString();
           const isSunday = option.getDay() === 0;
+          const isHolidayDay = isHoliday(option);
           return (
             <button
               key={option.toISOString()}
+              data-date={toDateKey(option)}
               type="button"
-              onClick={() => setDate(option)}
+              onClick={() => {
+                lastActionRef.current = "list";
+                setDate(option);
+              }}
               className={`min-w-[88px] rounded-md border px-3 py-2 text-sm transition ${
                 isSelected ? "border-primary bg-secondary text-primary" : "border-input bg-background hover:bg-accent hover:text-accent-foreground"
               }`}
             >
               <div className="font-semibold">{option.toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</div>
-              <div className={`text-xs ${isSunday ? "text-red-500" : "text-muted-foreground"}`}>{option.toLocaleDateString("ko-KR", { weekday: "short" })}</div>
+              <div className={`text-xs ${isSunday || isHolidayDay ? "text-red-500" : "text-muted-foreground"}`}>{option.toLocaleDateString("ko-KR", { weekday: "short" })}</div>
             </button>
           );
         })}
