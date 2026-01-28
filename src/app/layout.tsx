@@ -3,6 +3,7 @@ import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import MobileBottomNav from "@/components/mobile-bottom-nav";
 import { Toaster } from "@/components/ui/sonner";
 import { SWRProvider } from "@/lib/swr-provider";
 
@@ -29,8 +30,9 @@ export default function RootLayout({
       <body className={`${notoSansKR.variable} antialiased`}>
         <SWRProvider>
           <Header />
-          <main>{children}</main>
+          <main className="pb-16 sm:pb-0">{children}</main>
           <Footer />
+          <MobileBottomNav />
           <Toaster position="top-right" />
         </SWRProvider>
       </body>
