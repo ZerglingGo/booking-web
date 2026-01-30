@@ -88,7 +88,7 @@ export default function Header() {
           </Link>
         </div>
 
-        <div className="hidden items-center justify-end gap-2 sm:flex">
+        <div className="hidden items-center justify-end gap-4 sm:flex">
           {isLoading ? null : isAuthenticated ? (
             <button type="button" onClick={handleLogout} className="font-semibold text-primary text-sm hover:underline">
               로그아웃
@@ -98,7 +98,6 @@ export default function Header() {
               <Link href="/auth/login" className="font-semibold text-primary text-sm hover:underline">
                 로그인
               </Link>
-              <span className="text-muted-foreground text-sm">|</span>
               <Link href="/auth/register" className="font-semibold text-primary text-sm hover:underline">
                 회원가입
               </Link>
