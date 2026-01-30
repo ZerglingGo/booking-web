@@ -1,7 +1,7 @@
 "use client";
 
-import { format, isBefore } from "date-fns";
-import { type FormEvent, useState } from "react";
+import { format, isAfter, isBefore } from "date-fns";
+import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 type FetchState = "idle" | "loading" | "success" | "error";
@@ -25,11 +26,21 @@ type FetchState = "idle" | "loading" | "success" | "error";
 type ReservationSearchResponse = Reservation[] | { reservations?: Reservation[]; data?: Reservation[] };
 
 export default function ReservationCheck() {
+  const { user } = useAuth();
   const [name, setName] = useState<string>("");
   const [contact, setContact] = useState<string>("");
   const [results, setResults] = useState<Reservation[] | null>(null);
   const [state, setState] = useState<FetchState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    setName(user.name ?? "");
+    setContact(user.contact ?? "");
+  }, [user]);
 
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
@@ -168,8 +179,8 @@ export default function ReservationCheck() {
                   </div>
                 )}
               </CardContent>
-              <CardFooter>
-                {!reservation.canceled_at && isBefore(reservation.reservation_at, new Date()) && (
+              {!reservation.canceled_at && isAfter(reservation.reservation_at, new Date()) && (
+                <CardFooter>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive">예약 취소</Button>
@@ -186,8 +197,8 @@ export default function ReservationCheck() {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                )}
-              </CardFooter>
+                </CardFooter>
+              )}
             </Card>
           ))}
         </div>

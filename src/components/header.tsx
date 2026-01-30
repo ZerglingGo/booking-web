@@ -7,17 +7,23 @@ import { useState } from "react";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const { isAuthenticated, isLoading, logout } = useAuth();
 
   const handleClose = () => {
     setOpen(false);
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <header className="sticky top-0 z-10 flex w-full flex-col items-center justify-center gap-4 border-b bg-white py-2 shadow">
-      <div className="grid w-full grid-cols-3 items-center justify-between px-4">
+      <div className="container grid w-full grid-cols-3 items-center justify-between px-4">
         <div>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger className="block sm:hidden">
@@ -82,7 +88,23 @@ export default function Header() {
           </Link>
         </div>
 
-        <div></div>
+        <div className="hidden items-center justify-end gap-2 sm:flex">
+          {isLoading ? null : isAuthenticated ? (
+            <button type="button" onClick={handleLogout} className="font-semibold text-primary text-sm hover:underline">
+              로그아웃
+            </button>
+          ) : (
+            <>
+              <Link href="/auth/login" className="font-semibold text-primary text-sm hover:underline">
+                로그인
+              </Link>
+              <span className="text-muted-foreground text-sm">|</span>
+              <Link href="/auth/register" className="font-semibold text-primary text-sm hover:underline">
+                회원가입
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       <Navigation />

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 declare global {
@@ -43,6 +44,7 @@ export default function SiteSelector({
 }) {
   const dateString = format(date, "yyyy-MM-dd");
   const { data } = useSWR<Site[]>(`/api/zones/${zone.id}/sites?date=${dateString}`);
+  const { user, isAuthenticated } = useAuth();
 
   const [name, setName] = useState<string>("");
   const [contact, setContact] = useState<string>("");
@@ -67,20 +69,35 @@ export default function SiteSelector({
     };
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    setName(user.name ?? "");
+    setContact(user.contact ?? "");
+  }, [user]);
+
+  const effectiveName = isAuthenticated ? (user?.name ?? name) : name;
+  const effectiveContact = isAuthenticated ? (user?.contact ?? contact) : contact;
+
   const goPay = () => {
     if (!site) return;
 
     const amount = (zone.price + zone.additional_person_price * additionalPerson).toString();
+    const token = localStorage.getItem("auth_token");
+
     fetch("/api/smartro/moid", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         date: format(date, "yyyy-MM-dd"),
         site_id: site.id,
-        name: name,
-        contact: contact,
+        name: effectiveName,
+        contact: effectiveContact,
         additional_person: additionalPerson,
       }),
     })
@@ -231,8 +248,8 @@ export default function SiteSelector({
           <h3 className="mb-4 font-bold text-lg">예약자 정보</h3>
 
           <div className="flex flex-col gap-4">
-            <Input placeholder="이름" value={name} onChange={(e) => setName(e.target.value)} />
-            <Input placeholder="연락처" value={contact} onChange={(e) => setContact(e.target.value)} inputMode="numeric" />
+            <Input placeholder="이름" value={effectiveName} onChange={(e) => setName(e.target.value)} />
+            <Input placeholder="연락처" value={effectiveContact} onChange={(e) => setContact(e.target.value)} inputMode="numeric" />
 
             <div className="flex cursor-pointer items-center gap-2 rounded-md border pl-2 shadow-xs transition hover:bg-neutral-100">
               <Checkbox id="terms" className="transition" checked={terms} onCheckedChange={(c) => setTerms(c)} />
@@ -306,7 +323,7 @@ export default function SiteSelector({
             <span className="font-bold text-2xl text-red-500">{(zone.price + zone.additional_person_price * additionalPerson).toLocaleString("ko-KR")}원</span>
           </div>
 
-          <Button className="cursor-pointer py-6 transition" onClick={() => goPay()} disabled={!site || !name || !contact || !terms}>
+          <Button className="cursor-pointer py-6 transition" onClick={() => goPay()} disabled={!site || !effectiveName || !effectiveContact || !terms}>
             예약하기
           </Button>
         </div>
@@ -324,8 +341,8 @@ export default function SiteSelector({
           <input type="hidden" readOnly name="Mid" defaultValue={mid} />
           <input type="hidden" readOnly name="ReturnUrl" defaultValue={returnUrl} />
           <input type="hidden" readOnly name="StopUrl" defaultValue={stopUrl} />
-          <input type="hidden" readOnly name="BuyerName" value={name} />
-          <input type="hidden" readOnly name="BuyerTel" value={contact} />
+          <input type="hidden" readOnly name="BuyerName" value={effectiveName} />
+          <input type="hidden" readOnly name="BuyerTel" value={effectiveContact} />
           <input type="hidden" readOnly name="BuyerEmail" defaultValue="" />
           <input type="hidden" readOnly name="VbankExpDate" defaultValue={format(addDays(new Date(), 1), "yyyyMMdd")} />
           <input type="hidden" readOnly name="EncryptData" ref={encDataRef} />

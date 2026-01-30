@@ -5,6 +5,7 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/lib/auth-context";
 import { SWRProvider } from "@/lib/swr-provider";
 
 const notoSansKR = Noto_Sans_KR({
@@ -29,11 +30,13 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${notoSansKR.variable} antialiased`}>
         <SWRProvider>
-          <Header />
-          <main className="pb-16 sm:pb-0">{children}</main>
-          <Footer />
-          <MobileBottomNav />
-          <Toaster position="top-right" />
+          <AuthProvider>
+            <Header />
+            <main className="pb-16 sm:pb-0">{children}</main>
+            <Footer />
+            <MobileBottomNav />
+            <Toaster position="top-right" />
+          </AuthProvider>
         </SWRProvider>
       </body>
     </html>

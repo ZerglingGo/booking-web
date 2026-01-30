@@ -1,16 +1,22 @@
 "use client";
 
-import { CalendarIcon, CheckCircleIcon, HomeIcon, LogInIcon, MenuIcon } from "lucide-react";
+import { CalendarIcon, CheckCircleIcon, HomeIcon, LogInIcon, LogOutIcon, MenuIcon } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/lib/auth-context";
 
 export default function MobileBottomNav() {
   const [open, setOpen] = useState(false);
+  const { isAuthenticated, isLoading, logout } = useAuth();
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
@@ -77,7 +83,13 @@ export default function MobileBottomNav() {
         <NavLink href="/" label="홈" icon={<HomeIcon className="size-5" />} />
         <NavLink href="/reservation" label="실시간예약" icon={<CalendarIcon className="size-5" />} />
         <NavLink href="/reservation/check" label="예약확인" icon={<CheckCircleIcon className="size-5" />} />
-        <NavLink href="/login" label="로그인" icon={<LogInIcon className="size-5" />} />
+        {isLoading ? (
+          <NavPlaceholder label="" />
+        ) : isAuthenticated ? (
+          <NavButton onClick={handleLogout} label="로그아웃" icon={<LogOutIcon className="size-5" />} />
+        ) : (
+          <NavLink href="/auth/login" label="로그인" icon={<LogInIcon className="size-5" />} />
+        )}
       </nav>
     </div>
   );
@@ -90,4 +102,17 @@ function NavLink({ href, label, icon }: { href: string; label: string; icon: Rea
       {label}
     </Link>
   );
+}
+
+function NavButton({ label, icon, onClick }: { label: string; icon: ReactNode; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="flex flex-col items-center justify-center gap-1 py-2 font-medium text-muted-foreground text-xs">
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function NavPlaceholder({ label }: { label: string }) {
+  return <div className="flex flex-col items-center justify-center gap-1 py-2 text-transparent text-xs">{label}</div>;
 }
