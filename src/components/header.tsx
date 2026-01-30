@@ -89,8 +89,14 @@ export default function Header() {
         </div>
 
         <div className="hidden items-center justify-end gap-4 sm:flex">
-          {isLoading ? null : isAuthenticated ? (
-            <button type="button" onClick={handleLogout} className="font-semibold text-primary text-sm hover:underline">
+          {isAuthenticated ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="font-semibold text-primary text-sm hover:underline disabled:opacity-60"
+              disabled={isLoading}
+              aria-busy={isLoading}
+            >
               로그아웃
             </button>
           ) : (

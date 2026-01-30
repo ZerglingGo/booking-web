@@ -85,14 +85,13 @@ export default function SiteSelector({
     if (!site) return;
 
     const amount = (zone.price + zone.additional_person_price * additionalPerson).toString();
-    const token = localStorage.getItem("auth_token");
 
     fetch("/api/smartro/moid", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      credentials: "include",
       body: JSON.stringify({
         date: format(date, "yyyy-MM-dd"),
         site_id: site.id,

@@ -43,22 +43,38 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_ENDPOINT ?? "";
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+function getXsrfToken(): string | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const token = document.cookie
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith("XSRF-TOKEN="));
+
+  if (!token) {
+    return null;
+  }
+
+  return decodeURIComponent(token.replace("XSRF-TOKEN=", ""));
+}
+
+type AuthProviderProps = {
+  children: React.ReactNode;
+  initialHasToken?: boolean;
+};
+
+export function AuthProvider({ children, initialHasToken = false }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => Boolean(initialHasToken));
+  const [hasSession, setHasSession] = useState(() => Boolean(initialHasToken));
 
-  const setToken = useCallback((token: string | null) => {
-    if (token) {
-      localStorage.setItem("auth_token", token);
-    } else {
-      localStorage.removeItem("auth_token");
-    }
-  }, []);
-
-  const fetchMe = useCallback(async (token: string): Promise<AuthUser | null> => {
+  const fetchMe = useCallback(async (): Promise<AuthUser | null> => {
     const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      credentials: "include",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
       },
     });
 
@@ -75,35 +91,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refresh = useCallback(async () => {
-    const token = localStorage.getItem("auth_token");
-    if (!token) {
-      setUser(null);
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
-    const me = await fetchMe(token);
+    const me = await fetchMe();
 
     if (!me) {
-      setToken(null);
       setUser(null);
+      setHasSession(false);
       setIsLoading(false);
       return;
     }
 
     setUser(me);
+    setHasSession(true);
     setIsLoading(false);
-  }, [fetchMe, setToken]);
+  }, [fetchMe]);
 
   const login = useCallback(
     async ({ email, password, deviceName }: LoginPayload): Promise<AuthResult> => {
       try {
+        await fetch(`${API_BASE_URL}/sanctum/csrf-cookie`, {
+          credentials: "include",
+        });
+
+        const xsrfToken = getXsrfToken();
+
         const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
+            ...(xsrfToken ? { "X-XSRF-TOKEN": xsrfToken } : {}),
           },
+          credentials: "include",
           body: JSON.stringify({
             email,
             password,
@@ -120,13 +139,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
         }
 
-        if (data?.token) {
-          setToken(data.token as string);
-        }
-
         if (data?.user) {
           setUser(data.user as AuthUser);
-        } else if (data?.token) {
+          setHasSession(true);
+        } else {
           await refresh();
         }
 
@@ -138,17 +154,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
     },
-    [refresh, setToken],
+    [refresh],
   );
 
   const register = useCallback(
     async ({ name, email, contact, password, passwordConfirmation, deviceName }: RegisterPayload): Promise<AuthResult> => {
       try {
+        await fetch(`${API_BASE_URL}/sanctum/csrf-cookie`, {
+          credentials: "include",
+        });
+
+        const xsrfToken = getXsrfToken();
+
         const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
+            ...(xsrfToken ? { "X-XSRF-TOKEN": xsrfToken } : {}),
           },
+          credentials: "include",
           body: JSON.stringify({
             name,
             email,
@@ -168,13 +193,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
         }
 
-        if (data?.token) {
-          setToken(data.token as string);
-        }
-
         if (data?.user) {
           setUser(data.user as AuthUser);
-        } else if (data?.token) {
+          setHasSession(true);
+        } else {
           await refresh();
         }
 
@@ -186,57 +208,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
       }
     },
-    [refresh, setToken],
+    [refresh],
   );
 
   const logout = useCallback(async () => {
-    const token = localStorage.getItem("auth_token");
-    setToken(null);
     setUser(null);
-
-    if (!token) {
-      return;
-    }
+    setHasSession(false);
 
     try {
+      const xsrfToken = getXsrfToken();
+
       await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: "POST",
+        credentials: "include",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          ...(xsrfToken ? { "X-XSRF-TOKEN": xsrfToken } : {}),
         },
       });
     } catch {
       return;
     }
-  }, [setToken]);
+  }, []);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
-  useEffect(() => {
-    const syncFromStorage = () => {
-      void refresh();
-    };
-
-    window.addEventListener("storage", syncFromStorage);
-
-    return () => {
-      window.removeEventListener("storage", syncFromStorage);
-    };
-  }, [refresh]);
-
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      isAuthenticated: Boolean(user),
+      isAuthenticated: Boolean(user) || hasSession,
       isLoading,
       login,
       register,
       logout,
       refresh,
     }),
-    [user, isLoading, login, register, logout, refresh],
+    [user, hasSession, isLoading, login, register, logout, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

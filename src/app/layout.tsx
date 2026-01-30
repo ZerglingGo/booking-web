@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
+import { cookies } from "next/headers";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import MobileBottomNav from "@/components/mobile-bottom-nav";
@@ -21,16 +22,20 @@ export const metadata: Metadata = {
   description: "캠핑장 소개",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const sessionCookieName = process.env.NEXT_PUBLIC_SESSION_COOKIE ?? "laravel-session";
+  const hasAuthCookie = Boolean(cookieStore.get(sessionCookieName)?.value);
+
   return (
     <html lang="ko">
       <body className={`${notoSansKR.variable} antialiased`}>
         <SWRProvider>
-          <AuthProvider>
+          <AuthProvider initialHasToken={hasAuthCookie}>
             <Header />
             <main className="pb-16 sm:pb-0">{children}</main>
             <Footer />
