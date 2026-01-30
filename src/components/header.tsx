@@ -83,7 +83,7 @@ export default function Header() {
 
         <div className="flex items-center justify-center">
           <Link href="/">
-            <Image src="/logo.png" alt="logo" width={64} height={60} priority />
+            <Image src="/logo.png" alt="logo" width={64} height={64} priority />
             <span className="sr-only">title</span>
           </Link>
         </div>
