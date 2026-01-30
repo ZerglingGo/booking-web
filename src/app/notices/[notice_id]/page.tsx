@@ -3,8 +3,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-export async function generateMetadata({ params }: { params: { notice_id: string } }): Promise<Metadata> {
-  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${params.notice_id}`, { cache: "no-store" });
+export async function generateMetadata({ params }: { params: Promise<{ notice_id?: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const noticeId = resolvedParams.notice_id;
+
+  if (!noticeId) {
+    return {
+      title: "공지사항 없음",
+      description: "존재하지 않는 공지사항입니다.",
+    };
+  }
+
+  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${noticeId}`, { cache: "no-store" });
 
   if (!data.ok) {
     return {
@@ -21,8 +31,15 @@ export async function generateMetadata({ params }: { params: { notice_id: string
   };
 }
 
-export default async function Page({ params }: { params: { notice_id: string } }) {
-  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${params.notice_id}`, { cache: "no-store" });
+export default async function Page({ params }: { params: Promise<{ notice_id?: string }> }) {
+  const resolvedParams = await params;
+  const noticeId = resolvedParams.notice_id;
+
+  if (!noticeId) {
+    redirect("/notices");
+  }
+
+  const data = await fetch(`${process.env.API_ENDPOINT}/api/articles/${noticeId}`, { cache: "no-store" });
   if (!data.ok) {
     redirect("/notices");
   }
