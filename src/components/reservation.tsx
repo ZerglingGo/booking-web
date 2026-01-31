@@ -48,7 +48,7 @@ export default function Reservation() {
   const zoneOpenAt = normalizeDate(zone?.open_at);
   const zoneCloseAt = normalizeDate(zone?.close_at);
   const minDate = zoneOpenAt ?? today;
-  const maxDate = zoneCloseAt ?? addDays(minDate, 90);
+  const maxDate = zoneCloseAt ?? addDays(minDate, 365);
 
   const monthOptions = (() => {
     const options: { key: string; label: string }[] = [];
