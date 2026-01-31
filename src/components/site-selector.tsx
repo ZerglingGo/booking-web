@@ -77,7 +77,8 @@ export default function SiteSelector({
 
   const ensureCsrfToken = async () => {
     if (csrfInitializedRef.current) {
-      return getCookieValue("XSRF-TOKEN");
+      const token = getCookieValue("XSRF-TOKEN");
+      return token;
     }
 
     await fetch("/sanctum/csrf-cookie", {
@@ -86,7 +87,8 @@ export default function SiteSelector({
     });
 
     csrfInitializedRef.current = true;
-    return getCookieValue("XSRF-TOKEN");
+    const token = getCookieValue("XSRF-TOKEN");
+    return token;
   };
 
   useEffect(() => {
@@ -135,6 +137,11 @@ export default function SiteSelector({
     setCouponError(null);
     setAppliedCouponCode(null);
   }, [appliedCouponCode, couponCode]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: update when any of zone, date, additionalPerson changes
+  useEffect(() => {
+    applyCoupon();
+  }, [zone, date, additionalPerson]);
 
   const effectiveName = isAuthenticated ? (user?.name ?? name) : name;
   const effectiveContact = isAuthenticated ? (user?.contact ?? contact) : contact;
@@ -260,6 +267,7 @@ export default function SiteSelector({
                 approvalForm.Tid.defaultValue = res.Tid;
                 approvalForm.TrAuthKey.defaultValue = res.TrAuthKey;
                 approvalForm.action = returnUrl;
+
                 approvalForm.submit();
               },
             });
@@ -449,7 +457,22 @@ export default function SiteSelector({
           <h3 className="mb-4 font-bold text-lg">쿠폰</h3>
 
           <div className="flex flex-col gap-2">
-            <Input placeholder="쿠폰 코드 입력" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} />
+            <Input
+              placeholder="쿠폰 코드 입력"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              onBlur={() => {
+                if (!couponCode.trim() || isApplyingCoupon) {
+                  return;
+                }
+
+                if (appliedCouponCode && appliedCouponCode === couponCode.trim()) {
+                  return;
+                }
+
+                applyCoupon();
+              }}
+            />
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" onClick={applyCoupon} disabled={isApplyingCoupon || !couponCode.trim()}>
                 {isApplyingCoupon ? "적용 중..." : "쿠폰 적용"}
