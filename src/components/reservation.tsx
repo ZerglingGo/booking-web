@@ -1,8 +1,10 @@
 "use client";
 
+import { format } from "date-fns/format";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ko } from "react-day-picker/locale";
+import useSWR from "swr";
 import SiteSelector from "@/components/site-selector";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -45,6 +47,8 @@ export default function Reservation() {
   const lastActionRef = useRef<"init" | "list" | "month" | "calendar">("init");
 
   const today = todayRef.current;
+  const dateString = format(date, "yyyy-MM-dd");
+  const { data: pricedZones } = useSWR<Zone[]>(zone ? `/api/zones?date=${dateString}` : null);
   const zoneOpenAt = normalizeDate(zone?.open_at);
   const zoneCloseAt = normalizeDate(zone?.close_at);
   const minDate = zoneOpenAt ?? today;
@@ -124,6 +128,33 @@ export default function Reservation() {
       lastActionRef.current = "init";
     });
   }, [dateOptions, date, today]);
+
+  useEffect(() => {
+    if (!zone || !pricedZones?.length) {
+      return;
+    }
+
+    const latestZone = pricedZones.find((candidate) => candidate.id === zone.id);
+    if (!latestZone) {
+      return;
+    }
+
+    setZone((prev) => {
+      if (!prev) {
+        return prev;
+      }
+
+      if (prev.price === latestZone.price && prev.additional_person_price === latestZone.additional_person_price) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        price: latestZone.price,
+        additional_person_price: latestZone.additional_person_price,
+      };
+    });
+  }, [zone, pricedZones]);
 
   return (
     <div className="space-y-3">
