@@ -49,6 +49,12 @@ export default function SiteSelector({
   const [name, setName] = useState<string>("");
   const [contact, setContact] = useState<string>("");
   const [terms, setTerms] = useState<CheckedState>(false);
+  const [couponCode, setCouponCode] = useState<string>("");
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [finalPrice, setFinalPrice] = useState<number | null>(null);
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState<boolean>(false);
 
   // random string
   const mid = process.env.NEXT_PUBLIC_SMARTRO_MID;
@@ -58,6 +64,30 @@ export default function SiteSelector({
 
   const returnUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/smartro/approval`;
   const stopUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reservation`;
+  const csrfInitializedRef = useRef(false);
+
+  const getCookieValue = (name: string) => {
+    if (typeof document === "undefined") {
+      return null;
+    }
+
+    const match = document.cookie.match(new RegExp(`(^|; )${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[2]) : null;
+  };
+
+  const ensureCsrfToken = async () => {
+    if (csrfInitializedRef.current) {
+      return getCookieValue("XSRF-TOKEN");
+    }
+
+    await fetch("/sanctum/csrf-cookie", {
+      method: "GET",
+      credentials: "include",
+    });
+
+    csrfInitializedRef.current = true;
+    return getCookieValue("XSRF-TOKEN");
+  };
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -78,41 +108,140 @@ export default function SiteSelector({
     setContact(user.contact ?? "");
   }, [user]);
 
+  const couponResetKey = `${zone.id}-${dateString}-${additionalPerson}`;
+
+  useEffect(() => {
+    if (!couponResetKey) {
+      return;
+    }
+
+    setDiscountAmount(0);
+    setFinalPrice(null);
+    setCouponError(null);
+    setAppliedCouponCode(null);
+  }, [couponResetKey]);
+
+  useEffect(() => {
+    if (!appliedCouponCode) {
+      return;
+    }
+
+    if (couponCode.trim() === appliedCouponCode) {
+      return;
+    }
+
+    setDiscountAmount(0);
+    setFinalPrice(null);
+    setCouponError(null);
+    setAppliedCouponCode(null);
+  }, [appliedCouponCode, couponCode]);
+
   const effectiveName = isAuthenticated ? (user?.name ?? name) : name;
   const effectiveContact = isAuthenticated ? (user?.contact ?? contact) : contact;
+  const baseAmount = zone.price + zone.additional_person_price * additionalPerson;
+  const totalAmount = finalPrice ?? baseAmount;
+
+  const applyCoupon = () => {
+    const trimmedCode = couponCode.trim();
+    if (!trimmedCode) {
+      setCouponError("쿠폰 코드를 입력해 주세요.");
+      return;
+    }
+
+    setIsApplyingCoupon(true);
+    setCouponError(null);
+
+    ensureCsrfToken()
+      .then((csrfToken) =>
+        fetch("/api/coupons/apply", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            date: format(date, "yyyy-MM-dd"),
+            zone_id: zone.id,
+            additional_person: additionalPerson,
+            coupon_code: trimmedCode,
+          }),
+        }),
+      )
+      .then(async (res) => {
+        const payload = await res.json();
+
+        if (!res.ok) {
+          const message = payload?.errors?.coupon_code?.[0] ?? payload?.message ?? "쿠폰을 적용할 수 없습니다.";
+          setCouponError(message);
+          setDiscountAmount(0);
+          setFinalPrice(null);
+          setAppliedCouponCode(null);
+          return;
+        }
+
+        setDiscountAmount(payload.discount_amount ?? 0);
+        setFinalPrice(payload.final_price ?? baseAmount);
+        setAppliedCouponCode(payload.coupon_code ?? trimmedCode);
+        setCouponError(null);
+      })
+      .finally(() => {
+        setIsApplyingCoupon(false);
+      });
+  };
 
   const goPay = () => {
     if (!site) return;
 
-    const amount = (zone.price + zone.additional_person_price * additionalPerson).toString();
+    setCouponError(null);
 
-    fetch("/api/smartro/moid", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        date: format(date, "yyyy-MM-dd"),
-        site_id: site.id,
-        name: effectiveName,
-        contact: effectiveContact,
-        additional_person: additionalPerson,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!moidRef.current) return;
-
-        moidRef.current.value = data.moid;
-
-        fetch("/api/smartro/encrypt", {
+    ensureCsrfToken()
+      .then((csrfToken) =>
+        fetch("/api/smartro/moid", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
           },
-          body: JSON.stringify({ data: [ediDate, amount] }),
-        })
+          credentials: "include",
+          body: JSON.stringify({
+            date: format(date, "yyyy-MM-dd"),
+            site_id: site.id,
+            name: effectiveName,
+            contact: effectiveContact,
+            additional_person: additionalPerson,
+            coupon_code: couponCode.trim() || undefined,
+          }),
+        }),
+      )
+      .then(async (res) => {
+        const payload = await res.json();
+
+        if (!res.ok) {
+          const message = payload?.errors?.coupon_code?.[0] ?? payload?.message ?? "쿠폰을 적용할 수 없습니다.";
+          setCouponError(message);
+          return;
+        }
+
+        if (!moidRef.current) return;
+
+        const amount = String(payload.price ?? baseAmount);
+
+        setDiscountAmount(payload.discount_amount ?? 0);
+        setFinalPrice(payload.price ?? baseAmount);
+        moidRef.current.value = payload.moid;
+
+        ensureCsrfToken()
+          .then((csrfToken) =>
+            fetch("/api/smartro/encrypt", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+              },
+              body: JSON.stringify({ data: [ediDate, amount] }),
+            }),
+          )
           .then((res) => res.json())
           .then((data) => {
             if (!encDataRef.current) return;
@@ -316,10 +445,40 @@ export default function SiteSelector({
           </div>
         </div>
 
+        <div className="mt-6 rounded-lg border px-8 py-6">
+          <h3 className="mb-4 font-bold text-lg">쿠폰</h3>
+
+          <div className="flex flex-col gap-2">
+            <Input placeholder="쿠폰 코드 입력" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} />
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={applyCoupon} disabled={isApplyingCoupon || !couponCode.trim()}>
+                {isApplyingCoupon ? "적용 중..." : "쿠폰 적용"}
+              </Button>
+              {appliedCouponCode && <span className="text-emerald-600 text-xs">적용됨</span>}
+            </div>
+            {couponError && <span className="text-red-500 text-xs">{couponError}</span>}
+          </div>
+        </div>
+
         <div className="mt-8 flex flex-col gap-4">
+          <div className="flex items-center justify-between px-2 text-sm">
+            <span>기본 요금</span>
+            <span>{zone.price.toLocaleString("ko-KR")}원</span>
+          </div>
+          <div className="flex items-center justify-between px-2 text-sm">
+            <span>추가 인원</span>
+            <span>{(zone.additional_person_price * additionalPerson).toLocaleString("ko-KR")}원</span>
+          </div>
+          {discountAmount > 0 && (
+            <div className="flex items-center justify-between px-2 text-emerald-600 text-sm">
+              <span>쿠폰 할인</span>
+              <span>-{discountAmount.toLocaleString("ko-KR")}원</span>
+            </div>
+          )}
+          <Separator className="bg-neutral-200" />
           <div className="flex items-center justify-between px-2">
             <span>총 결제금액</span>
-            <span className="font-bold text-2xl text-red-500">{(zone.price + zone.additional_person_price * additionalPerson).toLocaleString("ko-KR")}원</span>
+            <span className="font-bold text-2xl text-red-500">{totalAmount.toLocaleString("ko-KR")}원</span>
           </div>
 
           <Button className="cursor-pointer py-6 transition" onClick={() => goPay()} disabled={!site || !effectiveName || !effectiveContact || !terms}>
@@ -335,7 +494,7 @@ export default function SiteSelector({
           <input type="hidden" readOnly name="PayMethod" defaultValue="CARD" />
           <input type="hidden" readOnly name="GoodsCnt" defaultValue="1" />
           <input type="hidden" readOnly name="GoodsName" value={`${dateString} ${zone.name}`} />
-          <input type="hidden" readOnly name="Amt" value={zone.price + zone.additional_person_price * additionalPerson} />
+          <input type="hidden" readOnly name="Amt" value={totalAmount} />
           <input type="hidden" readOnly name="Moid" ref={moidRef} />
           <input type="hidden" readOnly name="Mid" defaultValue={mid} />
           <input type="hidden" readOnly name="ReturnUrl" defaultValue={returnUrl} />
