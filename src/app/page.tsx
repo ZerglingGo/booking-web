@@ -17,7 +17,7 @@ export default async function Page() {
       <div className="mx-auto max-w-4xl">
         <h2 className="font-extrabold text-3xl tracking-tight">공지사항</h2>
 
-        <div className="mt-6 grid grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
           {!articles || articles.length === 0 ? (
             <div className="rounded-lg border py-4 text-center">공지사항이 없습니다.</div>
           ) : (

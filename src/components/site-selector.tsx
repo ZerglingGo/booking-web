@@ -58,7 +58,7 @@ export default function SiteSelector({
 
   // random string
   const mid = process.env.NEXT_PUBLIC_SMARTRO_MID;
-  const ediDate = format(new Date(), "yyyyMMddHHmmss");
+  const ediDate = useRef(format(new Date(), "yyyyMMddHHmmss")).current;
   const moidRef = useRef<HTMLInputElement>(null);
   const encDataRef = useRef<HTMLInputElement>(null);
 
